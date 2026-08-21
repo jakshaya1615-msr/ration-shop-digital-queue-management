@@ -22,5 +22,3 @@ A web-based digital queue management system for ration shops developed using HTM
 
 ## Project Purpose
 The project demonstrates basic web development, user input handling, queue scheduling logic, priority queue management, and dynamic display of real-time results.
-   ```bash
-   git clone [https://github.com/jakshaya1615-msr/ration-shop-digital-queue-management.git](https://github.com/jakshaya1615-msr/ration-shop-digital-queue-management.git)
