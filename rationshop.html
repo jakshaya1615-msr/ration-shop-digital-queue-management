@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Ration System</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(120deg,#ff9a9e,#fad0c4,#a18cd1);
+background-size:400% 400%;
+animation:bg 10s infinite alternate;
+}
+@keyframes bg{
+0%{background-position:0%;}
+100%{background-position:100%;}
+}
+.container{
+max-width:420px;
+margin:auto;
+padding:10px;
+}
+.header{
+text-align:center;
+font-size:24px;
+font-weight:bold;
+color:white;
+margin-top:20px;
+}
+.card{
+background:rgba(255,255,255,0.9);
+padding:15px;
+margin:10px 0;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+input,select{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:1px solid #ccc;
+}
+button{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:none;
+border-radius:8px;
+background:linear-gradient(45deg,#ff6a00,#ee0979);
+color:white;
+font-weight:bold;
+}
+.logout{
+background:#333;
+}
+.token{
+padding:10px;
+margin:5px 0;
+border-radius:10px;
+background:#3498db;
+color:white;
+}
+.priority{
+background:#e74c3c;
+}
+.completed{
+background:#7f8c8d;
+}
+table{
+width:100%;
+border-collapse:collapse;
+}
+td,th{
+border:1px solid #ddd;
+padding:5px;
+text-align:center;
+}
+.clock{
+text-align:center;
+font-weight:bold;
+}
+.hidden{
+display:none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">Smart Ration System</div>
+
+<!-- LOGIN -->
+<div id="loginPage" class="card">
+<h3>Login</h3>
+<select id="role">
+<option>User</option>
+<option>Staff</option>
+</select>
+
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<p>User: Card + DOB | Staff: staff/123</p>
+</div>
+
+<!-- USER PAGE -->
+<div id="userPage" class="hidden">
+
+<div class="card">
+<h3>Book Token</h3>
+
+<input id="name" placeholder="Name">
+<input id="card" placeholder="Ration Card">
+<input type="number" id="age" placeholder="Age">
+<input type="date" id="date">
+
+<label>Choose Slot Time</label>
+<select id="slot">
+<option>9:00 - 10:00 AM</option>
+<option>10:00 - 11:00 AM</option>
+<option>11:00 - 12:00 PM</option>
+<option>2:00 - 3:00 PM</option>
+<option>3:00 - 4:00 PM</option>
+<option>4:00 - 5:00 PM</option>
+</select>
+
+<h4>Select Items</h4>
+<label><input type="checkbox" value="Rice"> Rice</label><br>
+<label><input type="checkbox" value="Wheat"> Wheat</label><br>
+<label><input type="checkbox" value="Sugar"> Sugar</label><br>
+<label><input type="checkbox" value="Oil"> Oil</label>
+
+<h4>Available Timings</h4>
+<p>9:00 AM - 1:00 PM & 2:00 PM - 6:00 PM</p>
+
+<h4>Working Days</h4>
+<p>Monday to Friday</p>
+
+<h4>Holidays</h4>
+<p>Saturday, Sunday & Government Holidays</p>
+
+<button onclick="bookToken()">Book Token</button>
+<button class="logout" onclick="logout()">Back</button>
+</div>
+
+</div>
+
+<!-- STAFF PAGE -->
+<div id="staffPage" class="hidden">
+
+<div class="card">
+<div class="clock" id="clock"></div>
+
+<h3>Current Token</h3>
+<div id="current">None</div>
+
+<button onclick="nextToken()">Call Next</button>
+<button class="logout" onclick="logout()">Back</button>
+</div>
+
+<div class="card">
+<h3>Waiting Queue</h3>
+<div id="queueList"></div>
+</div>
+
+<div class="card">
+<h3>Completed Tokens</h3>
+<div id="doneList"></div>
+</div>
+
+<div class="card">
+<h3>Statistics</h3>
+<p>Total Tokens: <span id="total"></span></p>
+<p>Waiting: <span id="waiting"></span></p>
+<p>Completed: <span id="done"></span></p>
+</div>
+
+<div class="card">
+<h3>Records (Database)</h3>
+
+<table>
+<tr><th>Token</th><th>Name</th><th>Slot</th><th>Items</th></tr>
+<tbody id="tableData"></tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let queue=[];
+let completed=[];
+let token=1;
+
+// CLOCK
+setInterval(()=>{
+let t=new Date();
+document.getElementById("clock").innerHTML=t.toLocaleTimeString();
+},1000);
+
+// LOGIN
+function login(){
+let role=document.getElementById("role").value;
+let u=document.getElementById("username").value;
+let p=document.getElementById("password").value;
+
+if(role=="User" && u!="" && p!=""){
+loginPage.style.display="none";
+userPage.style.display="block";
+}
+
+if(role=="Staff" && u=="staff" && p=="123"){
+loginPage.style.display="none";
+staffPage.style.display="block";
+display();
+}
+}
+
+// LOGOUT
+function logout(){
+loginPage.style.display="block";
+userPage.style.display="none";
+staffPage.style.display="none";
+}
+
+// BOOK TOKEN
+function bookToken(){
+
+let name=document.getElementById("name").value;
+let age=document.getElementById("age").value;
+let slot=document.getElementById("slot").value;
+
+// get selected items
+let items=[];
+document.querySelectorAll('input[type="checkbox"]:checked')
+.forEach(el=>items.push(el.value));
+
+let obj={token:token++,name,age,slot,items};
+
+if(age>=60){
+queue.unshift(obj);
+}else{
+queue.push(obj);
+}
+
+alert("Token "+obj.token+" booked");
+
+}
+
+// NEXT TOKEN
+function nextToken(){
+
+if(queue.length==0){alert("No customers");return;}
+
+let next=queue.shift();
+completed.push(next);
+
+current.innerHTML="Token "+next.token+" - "+next.name;
+
+display();
+}
+
+// DISPLAY
+function display(){
+
+let q="",d="",t="";
+
+queue.forEach(x=>{
+let cls="token";
+if(x.age>=60) cls="token priority";
+
+q+=`<div class="${cls}">
+Token ${x.token} - ${x.name}<br>
+Slot: ${x.slot}
+</div>`;
+});
+
+completed.forEach(x=>{
+d+=`<div class="token completed">
+Token ${x.token} - ${x.name}
+</div>`;
+});
+
+// ✅ UPDATED TABLE WITH ITEMS
+queue.concat(completed).forEach(x=>{
+t+=`<tr>
+<td>${x.token}</td>
+<td>${x.name}</td>
+<td>${x.slot}</td>
+<td>${x.items.join(", ")}</td>
+</tr>`;
+});
+
+queueList.innerHTML=q;
+doneList.innerHTML=d;
+tableData.innerHTML=t;
+
+total.innerHTML=queue.length + completed.length;
+waiting.innerHTML=queue.length;
+done.innerHTML=completed.length;
+
+}
+
+</script>
+
+</body>
+</html>
